@@ -15,11 +15,7 @@ import (
 
 func main() {
 	// get input from input args
-	fileName, extraArgs := setupArgParsing()
-
-	if len(extraArgs) > 0 {
-		log.Fatal(fmt.Errorf("extraneous arguments provided: %s", extraArgs))
-	}
+	fileName, timerSec := setupArgParsing()
 
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -34,26 +30,32 @@ func main() {
 		log.Fatal(fmt.Errorf("Something went wrong while reading the csv file: %s!", fileName))
 	}
 
-	processProblems(records)
+	processProblems(records, timerSec)
 }
 
-func setupArgParsing() (string, []string) {
+func setupArgParsing() (string, int) {
 	csvPtr := flag.String("csv", "problems.csv", "path to the quiz csv file")
+  	timePtr := flag.Int("time", 30, "seconds to allot for the quiz")
 
 	flag.Parse()
 
-	return *csvPtr, flag.Args();
+	if len(flag.Args()) > 0 {
+		flag.PrintDefaults();
+		os.Exit(1)
+	}
+
+	return *csvPtr, *timePtr;
 }
 
 // processProblems takes a list of quiz problems and asks the user to solve them,
 // keeping track of the number of correct/incorrect answers
-func processProblems(problems [][]string) {
+func processProblems(problems [][]string, timerSec int) {
 
 	totalNumProblems := len(problems)
 	numCorrect := 0
 	numWrong := 0
 
-	timer1 := time.NewTimer(time.Second * 5)
+	timer1 := time.NewTimer(time.Second * time.Duration(timerSec))
 
 	go func() {
 
